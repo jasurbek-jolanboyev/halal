@@ -113,9 +113,9 @@
         <p class="text-gray-600 font-medium">Project Manager • TeamLead</p>
       </div>
       <div class="text-center team-card">
-        <img src="https://i.pravatar.cc/300?img=8" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
-        <h3 class="mt-4 text-xl font-bold text-main">Sardor Abduvaxidov</h3>
-        <p class="text-gray-600 font-medium">Frontend Developer</p>
+        <img src="assets/yulduz.png" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
+        <h3 class="mt-4 text-xl font-bold text-main">Yulduz Ergasheva</h3>
+        <p class="text-gray-600 font-medium">Web Developer</p>
       </div>
       <div class="text-center team-card">
         <img src="assets/zafarjon.jpg" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
@@ -123,14 +123,14 @@
         <p class="text-gray-600 font-medium">UI/UX Designer</p>
       </div>
       <div class="text-center team-card">
+        <img src="https://i.pravatar.cc/300?img=8" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
+        <h3 class="mt-4 text-xl font-bold text-main">Sardor Abduvaxidov</h3>
+        <p class="text-gray-600 font-medium">Frontend Developer</p>
+      </div>
+      <div class="text-center team-card">
         <img src="https://i.pravatar.cc/300?img=5" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
         <h3 class="mt-4 text-xl font-bold text-main">Durdona Bekimmetova</h3>
         <p class="text-gray-600 font-medium">ML Engineer</p>
-      </div>
-      <div class="text-center team-card">
-        <img src="assets/yulduz.png" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
-        <h3 class="mt-4 text-xl font-bold text-main">Yulduz Ergasheva</h3>
-        <p class="text-gray-600 font-medium">Web Developer</p>
       </div>
     </div>
     <div class="p-6 border-t text-center">
@@ -159,8 +159,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeText = document.getElementById("theme-text");
 
   // OPENAI API (O'zingizning kalitingizni qo'ying!)
-  const OPENAI_API_KEY = "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"; // <--- BU YERGA O'Z KALITINGIZNI QO'YING
-  const API_URL = "https://api.openai.com/v1/chat/completions";
+  // const OPENAI_API_KEY = "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"; // <--- BU YERGA O'Z KALITINGIZNI QO'YING
+  // const API_URL = "https://api.openai.com/v1/chat/completions";
 
   let messages = []; // Suhbat tarixi
   const haram = ["foiz","riba","kredit foiz","qimor","kazino","alkogol","spirt","sigaret","porno","cho‘chqa"];
@@ -209,44 +209,57 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ASOSIY YUBORISH FUNKSIYASI — OPENAI GPT-4o-mini
-// YANGI sendMessage — Backend orqali
-async function sendMessage() {
-  const text = input.value.trim();
-  if (!text) return;
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
 
-  // Haram so‘zlar tekshiruvi (avvalgidek saqlanib qoldi)
-  if (haram.some(w => text.toLowerCase().includes(w))) {
-    addMessage("assistant", `Hurmatli mijoz! Loyihangizda shariatga zid elementlar bor. Biz faqat halol yo‘l bilan ishlaymiz.\n\nIn sha Alloh, rizqingiz barakali bo‘lsin!`);
-    input.value = "";
-    return;
-  }
-
-  addMessage("user", text);
-  input.value = "";
-  input.style.height = "auto";
-  typing();
-
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
-
-    const data = await response.json();
-    document.getElementById("typing")?.remove();
-
-    if (data.answer) {
-      const aiReply = data.answer.trim();
-      addMessage("assistant", aiReply + "\n\nIn sha Alloh, rizqingiz barakali bo‘lsin!");
-    } else {
-      addMessage("assistant", data.error || "Javob olishda xatolik yuz berdi.");
+    // Haram so‘zlar tekshiruvi
+    if (haram.some(w => text.toLowerCase().includes(w))) {
+      addMessage("assistant", `Hurmatli mijoz! Loyihangizda shariatga zid elementlar bor. Biz faqat halol yo‘l bilan ishlaymiz.\n\nIn sha Alloh, rizqingiz barakali bo‘lsin!`);
+      input.value = "";
+      return;
     }
-  } catch (err) {
-    document.getElementById("typing")?.remove();
-    addMessage("assistant", "Server bilan aloqa yo‘q yoki internetda muammo.");
+
+    addMessage("user", text);
+    input.value = "";
+    input.style.height = "auto";
+    typing();
+
+    // OpenAI ga so‘rov
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.7,
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...messages,
+            { role: "user", content: text }
+          ]
+        })
+      });
+
+      const data = await response.json();
+      document.getElementById("typing")?.remove();
+
+      if (data.choices && data.choices[0]?.message?.content) {
+        const aiReply = data.choices[0].message.content.trim();
+        addMessage("assistant", aiReply + "\n\nIn sha Alloh, rizqingiz barakali bo‘lsin!");
+        messages.push({ role: "user", content: text });
+        messages.push({ role: "assistant", content: aiReply });
+      } else {
+        addMessage("assistant", "Javob olishda xatolik yuz berdi. Keyinroq urinib ko‘ring.");
+      }
+    } catch (err) {
+      document.getElementById("typing")?.remove();
+      addMessage("assistant", "Internet aloqasi bilan muammo! ");
+    }
   }
-}
 
   // Input va tugmalar
   if (sendBtn) sendBtn.addEventListener("click", sendMessage);
