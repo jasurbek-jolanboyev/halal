@@ -7,7 +7,7 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
 # Renderda kalitni Environment Variables orqali oladi
-openai.api_key = os.getenv("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")
+openai.api_key = os.getenv("api")
 
 SYSTEM_PROMPT = """Sen Credit.AI halol moliyalashtirish bo‘yicha sun'iy intellekt maslahatchisisan. 
 Javob faqat o‘zbek tilida, do‘stona va professional tonda bo‘lsin. 
