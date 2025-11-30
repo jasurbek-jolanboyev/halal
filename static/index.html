@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit.AI | Halol Moliyalashtirish Maslahatchisi</title>
+<meta name="theme-color" content="#0066FF">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script defer src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root { --main: #0066FF; --dark: #0044CC; }
+.bg-main { background-color: var(--main); }
+.hover\\:bg-dark:hover { background-color: var(--dark); }
+.text-main { color: var(--main); }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: var(--main); border-radius: 3px; }
+.typing span {
+  display: inline-block; width: 10px; height: 10px; background: var(--main);
+  border-radius: 50%; margin: 0 4px; animation: blink 1.4s infinite both;
+}
+.typing span:nth-child(2) { animation-delay: .2s; }
+.typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100% {opacity: .4} 40% {opacity: 1} }
+.message { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from {opacity: 0; transform: translateY(10px)} to {opacity: 1; transform: translateY(0)} }
+.team-card { transition: all 0.3s; }
+.team-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+.flex-center { display:flex; align-items:center; justify-content:center; gap:12px; }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen font-sans">
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-80 bg-white shadow-2xl -translate-x-full sm:translate-x-0 transition-transform duration-300 flex flex-col border-r border-gray-200">
+    <div class="bg-main text-white p-6 text-center">
+      <h1 class="text-2xl font-bold flex-center">
+        <i data-lucide="credit-card" class="w-10 h-10"></i> Credit.AI
+      </h1>
+      <p class="text-sm mt-1 opacity-90">Halol moliyalashtirish maslahatchisi</p>
+    </div>
+    <button id="new-chat-btn" class="mx-6 mt-6 flex-center p-4 bg-main text-white rounded-xl hover:bg-[var(--dark)] font-bold shadow-lg transition">
+      <i data-lucide="plus-circle"></i> Yangi suhbat
+    </button>
+    <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+      <button id="tariff-btn" class="w-full text-left p-4 rounded-xl hover:bg-gray-100 flex-center transition">
+        <i data-lucide="package" class="w-6 h-6 text-blue-600"></i> Xizmat paketlari
+      </button>
+      <button id="about-btn" class="w-full text-left p-4 rounded-xl hover:bg-gray-100 flex-center transition">
+        <i data-lucide="info" class="w-6 h-6 text-purple-600"></i> Biz haqimizda
+      </button>
+      <button id="team-btn" class="w-full text-left p-4 rounded-xl hover:bg-gray-100 flex-center transition font-bold text-main">
+        <i data-lucide="users" class="w-6 h-6"></i> Loyiha asoschilari
+      </button>
+      <button id="support-btn" class="w-full text-left p-4 rounded-xl hover:bg-gray-100 flex-center transition">
+        <i data-lucide="headphones" class="w-6 h-6 text-orange-600"></i> Qo‘llab-quvvatlash
+      </button>
+      <hr class="my-4 border-gray-300">
+      <button id="theme-toggle" class="w-full text-left p-4 rounded-xl hover:bg-gray-100 flex-center transition">
+        <i id="theme-icon" data-lucide="moon" class="w-6 h-6"></i>
+        <span id="theme-text">Tungi rejim</span>
+      </button>
+      <button id="clear-chat-btn" class="w-full text-left p-4 rounded-xl hover:bg-red-50 text-red-600 flex-center transition">
+        <i data-lucide="trash-2" class="w-6 h-6"></i> Suhbatni tozalash
+      </button>
+    </nav>
+    <div class="p-4 border-t text-center text-xs text-gray-500">
+      © 2025 Credit.AI — Faqat halol yo‘l bilan
+    </div>
+  </aside>
+
+  <!-- Overlay -->
+  <div id="overlay" class="fixed inset-0 bg-black/60 z-40 hidden"></div>
+
+  <!-- Chat maydoni -->
+  <main class="flex-1 flex flex-col">
+    <header class="sm:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-30 shadow">
+      <button id="menu-toggle" class="p-2"><i data-lucide="menu" class="w-8 h-8"></i></button>
+      <h1 class="text-xl font-bold text-main">Credit.AI</h1>
+      <div class="w-10"></div>
+    </header>
+
+    <div id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-6 pb-32"></div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-2xl p-4">
+      <div class="max-w-4xl mx-auto">
+        <div class="relative">
+          <textarea id="message-input" rows="1" placeholder="Savolingizni yozing..." 
+            class="w-full p-5 pr-20 border-2 border-main rounded-2xl outline-none resize-none max-h-40 bg-transparent"></textarea>
+          <button id="send-button" class="absolute right-3 top-1/2 -translate-y-1/2 p-4 bg-main text-white rounded-full hover:bg-[var(--dark)] transition shadow-lg">
+            <i data-lucide="send" class="w-6 h-6"></i>
+          </button>
+        </div>
+        <p class="text-center text-xs text-gray-500 mt-3">Faqat shariatga mos loyihalar uchun maslahat beramiz</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Jamoa modal -->
+<div id="team-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center overflow-y-auto py-10">
+  <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full mx-4 overflow-hidden">
+    <div class="bg-main text-white p-6 text-center">
+      <h2 class="text-2xl font-bold flex-center gap-3">
+        <i data-lucide="users" class="w-8 h-8"></i> Loyiha asoschilari
+      </h2>
+    </div>
+    <div class="p-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-h-[70vh] overflow-y-auto">
+      <div class="text-center team-card">
+        <img src="assets/jasurbek.png" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
+        <h3 class="mt-4 text-xl font-bold text-main">Jasurbek Jo'lanboyev</h3>
+        <p class="text-gray-600 font-medium">Project Manager • TeamLead</p>
+      </div>
+      <div class="text-center team-card">
+        <img src="https://i.pravatar.cc/300?img=8" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
+        <h3 class="mt-4 text-xl font-bold text-main">Sardor Abduvaxidov</h3>
+        <p class="text-gray-600 font-medium">Frontend Developer</p>
+      </div>
+      <div class="text-center team-card">
+        <img src="assets/zafarjon.jpg" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
+        <h3 class="mt-4 text-xl font-bold text-main">Zafarjon Zoidov</h3>
+        <p class="text-gray-600 font-medium">UI/UX Designer</p>
+      </div>
+      <div class="text-center team-card">
+        <img src="https://i.pravatar.cc/300?img=5" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
+        <h3 class="mt-4 text-xl font-bold text-main">Durdona Bekimmetova</h3>
+        <p class="text-gray-600 font-medium">ML Engineer</p>
+      </div>
+      <div class="text-center team-card">
+        <img src="assets/yulduz.png" class="w-32 h-32 rounded-full mx-auto border-4 border-main shadow-lg">
+        <h3 class="mt-4 text-xl font-bold text-main">Yulduz Ergasheva</h3>
+        <p class="text-gray-600 font-medium">Web Developer</p>
+      </div>
+    </div>
+    <div class="p-6 border-t text-center">
+      <button onclick="document.getElementById('team-modal').classList.add('hidden')" class="px-8 py-3 bg-main text-white rounded-xl hover:bg-[var(--dark)] font-bold">
+        Yopish
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  lucide.createIcons();
+
+  // Elementlar
+  const menuToggle = document.getElementById("menu-toggle");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const teamBtn = document.getElementById("team-btn");
+  const teamModal = document.getElementById("team-modal");
+  const sendBtn = document.getElementById("send-button");
+  const input = document.getElementById("message-input");
+  const chat = document.getElementById("chat-container");
+  const themeToggle = document.getElementById("theme-toggle");
+  const themeIcon = document.getElementById("theme-icon");
+  const themeText = document.getElementById("theme-text");
+
+  // OPENAI API (O'zingizning kalitingizni qo'ying!)
+  const OPENAI_API_KEY = "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"; // <--- BU YERGA O'Z KALITINGIZNI QO'YING
+  const API_URL = "https://api.openai.com/v1/chat/completions";
+
+  let messages = []; // Suhbat tarixi
+  const haram = ["foiz","riba","kredit foiz","qimor","kazino","alkogol","spirt","sigaret","porno","cho‘chqa"];
+  const systemPrompt = "Sen Credit.AI halol moliyalashtirish bo‘yicha sun'iy intellekt maslahatchisisan. Javob faqat o‘zbek tilida, do‘stona va professional tonda bo‘lsin. Har javob oxirida “In sha Alloh, rizqingiz barakali bo‘lsin!” deb yoz.";
+
+  // Sidebar
+  if (menuToggle) menuToggle.addEventListener("click", () => {
+    sidebar.classList.toggle("-translate-x-full");
+    overlay.classList.toggle("hidden");
+  });
+  if (overlay) overlay.addEventListener("click", () => {
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("hidden");
+  });
+
+  // Jamoa modal
+  if (teamBtn) teamBtn.addEventListener("click", () => teamModal.classList.remove("hidden"));
+  if (teamModal) teamModal.addEventListener("click", (e) => {
+    if (e.target === teamModal) teamModal.classList.add("hidden");
+  });
+
+  // Xabar qo‘shish
+  function addMessage(role, text) {
+    const div = document.createElement("div");
+    div.className = `flex gap-4 message ${role === "user" ? "justify-end" : ""}`;
+    div.innerHTML = `
+      <div class="w-12 h-12 rounded-full ${role === "user" ? "bg-gray-600" : "bg-main"} flex-center text-white shadow-lg">
+        <i data-lucide="${role === "user" ? "user" : "bot"}"></i>
+      </div>
+      <div class="max-w-2xl ${role === "user" ? "bg-main text-white" : "bg-white border"} rounded-3xl px-6 py-4 shadow">
+        ${marked.parse(text)}
+      </div>`;
+    chat.appendChild(div);
+    lucide.createIcons({ targets: div.querySelectorAll("[data-lucide]") });
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // Typing animatsiyasi
+  function typing() {
+    if (document.getElementById("typing")) return;
+    const el = document.createElement("div");
+    el.id = "typing";
+    el.innerHTML = `<div class="flex gap-4"><div class="w-12 h-12 rounded-full bg-main flex-center text-white"><i data-lucide="bot"></i></div><div class="bg-white border rounded-3xl px-6 py-4"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+    chat.appendChild(el);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // ASOSIY YUBORISH FUNKSIYASI — OPENAI GPT-4o-mini
+// YANGI sendMessage — Backend orqali
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Haram so‘zlar tekshiruvi (avvalgidek saqlanib qoldi)
+  if (haram.some(w => text.toLowerCase().includes(w))) {
+    addMessage("assistant", `Hurmatli mijoz! Loyihangizda shariatga zid elementlar bor. Biz faqat halol yo‘l bilan ishlaymiz.\n\nIn sha Alloh, rizqingiz barakali bo‘lsin!`);
+    input.value = "";
+    return;
+  }
+
+  addMessage("user", text);
+  input.value = "";
+  input.style.height = "auto";
+  typing();
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await response.json();
+    document.getElementById("typing")?.remove();
+
+    if (data.answer) {
+      const aiReply = data.answer.trim();
+      addMessage("assistant", aiReply + "\n\nIn sha Alloh, rizqingiz barakali bo‘lsin!");
+    } else {
+      addMessage("assistant", data.error || "Javob olishda xatolik yuz berdi.");
+    }
+  } catch (err) {
+    document.getElementById("typing")?.remove();
+    addMessage("assistant", "Server bilan aloqa yo‘q yoki internetda muammo.");
+  }
+}
+
+  // Input va tugmalar
+  if (sendBtn) sendBtn.addEventListener("click", sendMessage);
+  if (input) {
+    input.addEventListener("input", () => {
+      input.style.height = "auto";
+      input.style.height = input.scrollHeight + "px";
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
+
+  // Barcha sidebar tugmalari
+  document.getElementById("new-chat-btn")?.addEventListener("click", () => {
+    messages = [];
+    chat.innerHTML = "";
+    addMessage("assistant", `**Assalomu alaykum!**\n\nMen **Credit.AI** — halol moliyalashtirish bo‘yicha shaxsiy maslahatchingizman.\n\nLoyiha haqida gapirib bering — in sha Alloh birga amalga oshiramiz!\n\nIn sha Alloh, rizqingiz barakali bo‘lsin!`);
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("hidden");
+  });
+
+  document.getElementById("clear-chat-btn")?.addEventListener("click", () => {
+    messages = []; chat.innerHTML = "";
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("hidden");
+  });
+
+  document.getElementById("tariff-btn")?.addEventListener("click", () => {
+    addMessage("assistant", `**Credit.AI Xizmat paketlari**\n\n• Bepul – oddiy maslahat\n• Standart – 490 000 so‘m\n• Premium – 990 000 so‘m → cheksiz\n\n@creditai_support\n\nIn sha Alloh, rizqingiz barakali bo‘lsin!`);
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("hidden");
+  });
+
+  document.getElementById("about-btn")?.addEventListener("click", () => {
+    addMessage("assistant", `**Credit.AI** — O‘zbekistonda birinchi halol moliyalashtirish bo‘yicha sun'iy intellekt.\n\nFaqat shariatga mos usullar bilan ishlaymiz.\n\nIn sha Alloh, rizqingiz barakali bo‘lsin!`);
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("hidden");
+  });
+
+  document.getElementById("support-btn")?.addEventListener("click", () => {
+    window.open("https://t.me/serinaqu", "_blank");
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("hidden");
+  });
+
+  // Tema
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      const isDark = document.documentElement.classList.contains("dark");
+      themeIcon.setAttribute("data-lucide", isDark ? "moon" : "sun");
+      themeText.innerText = isDark ? "Tungi rejim" : "Kunduzgi rejim";
+      lucide.createIcons();
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      sidebar.classList.add("-translate-x-full");
+      overlay.classList.add("hidden");
+    });
+  }
+
+  // Birinchi suhbat
+  document.getElementById("new-chat-btn")?.click();
+
+  // Tema yuklash
+  if (localStorage.getItem("theme") === "dark") {
+    document.documentElement.classList.add("dark");
+    themeIcon.setAttribute("data-lucide", "moon");
+    themeText.innerText = "Tungi rejim";
+    lucide.createIcons();
+  }
+});
+</script>
+</body>
+</html>
